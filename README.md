@@ -28,10 +28,14 @@ Of course, this also allows chat between the server and Discord! Any in-game mes
 To configure the plugin, fill in the command below with the correct information based on the table.  
 Run `dc config {Option} {Input}` in the console to change the configuration
 
-| Config Option      | Input Type         | Required           | Permission Needed  |
-| ------------------ | ------------------ | ------------------ | ------------------ |
-| token              | Discord Bot Token  | Yes                | Console            |
-| chanID             | Discord Channel ID | Yes                | OP                 |
+| Config Option                 | Input Type                    | Required                      | Permission Needed             |
+| ----------------------------- | ----------------------------- | ----------------------------- | ----------------------------- |
+| token                         | Discord Bot Token             | Yes                           | Console                       |
+| chanID                        | Discord Channel ID            | Yes                           | OP                            |
+| BotEnabled                    | Boolean (True/False)          | No                            | OP                            |
+| PostDiscordMessagesToConsole  | Boolean (True/False)          | No                            | OP                            |
+| EnableJoinLeaveMessages       | Boolean (True/False)          | No                            | OP                            |
+| EnableServerStartStopMessages | Boolean (True/False)          | No                            | OP                            |
 
 For example, to set the channel ID the bot works in, run `dc config chanID 846147660843188235` in the console.
 
