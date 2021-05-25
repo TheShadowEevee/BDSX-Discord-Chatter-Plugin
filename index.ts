@@ -45,8 +45,9 @@ var token = configFile.token;
 var channel = configFile.chanID;
 
 // BDSX Imports
-import { bedrockServer, MinecraftPacketIds } from 'bdsx';
+import { bedrockServer, MinecraftPacketIds, command } from 'bdsx';
 import { events } from "bdsx/event";
+import { CxxString } from "bdsx/nativetype";
 
 // Discord Bot Requirements
 const Discord = require('discord.js');
@@ -207,3 +208,53 @@ function ReloadBot() {
         }
     });
 }
+
+
+// Register Commands
+// These are the commands usable by players/console to control the plugin.
+
+// On Server Open
+events.serverOpen.on(()=>{
+    let system = server.registerSystem(0,0);
+
+    // Cheaty way to return output to a user
+    function tellRaw(playerName: string, text: string){
+        if ( playerName != "Server" ) {
+            system.executeCommand(`/tellraw ${playerName} {"rawtext":[{"text":"${text}"}]}`, () => {});
+        } else {
+            console.log(text);
+        }
+    }
+
+    // Register the "dc" Command for DiscordChatter (1 = Operator Perms Minimum Required)
+    command.register('dc', 'DiscordChatter Commands', 1).overload((param, origin, output)=>{
+        let playerName = origin.getName();
+        switch (param.first) {
+            case "help":
+                tellRaw(playerName, "§3----- DiscordChatter Help -----§r")
+                tellRaw(playerName, "/dc help - Shows this help text")
+                tellRaw(playerName, "/dc reload - Reloads the Discord Bot")
+                tellRaw(playerName, "/dc config - Used to change config options")
+                tellRaw(playerName, "")
+                tellRaw(playerName, "§4Please note that most commands require OP.§r")
+                return 0;
+
+            case "config":
+                tellRaw(playerName, "Unimplimented.")
+                return 0;
+
+            case "reload":
+                tellRaw(playerName, "Reloading DiscordChatter!")
+                ReloadBot();
+                return 0;
+
+            default:
+                tellRaw(playerName, `Invalid argument \"${param.first}\". Use \"dc help\" for a list of commands.`)
+                return 0;
+        }
+    }, {
+        first: [CxxString, true], // Help, Config, Reload, Other
+        second: [CxxString, true], // Config Types
+        third: [CxxString, true] // New Config Values
+    });
+});
