@@ -1,39 +1,78 @@
+/* Discord Chatter Main File
+ * This is a plugin for BDSX
+ * All code within this project is under the ISC License.
+ * Copyright (c) 2021, TheShadowEevee and Github Contributors (https://github.com/TheShadowEevee/BDSX-Discord-Chatter-Plugin)
+ * See the LICENSE file for more.
+*/
 
+// JSON Files
+import { version as currVersion } from "./package.json";
 // Create config json if it doesn't exist
+const fs = require('fs')
+if (!fs.existsSync("./configs/Discord-Chatter/config.json") ) {
+    const defaultConfig = {
+        "token": "null",
+        "chanID": "null"
+    }
+    const jsonString = JSON.stringify(defaultConfig)
+    if (!fs.existsSync("./configs")) {
+        fs.mkdir("./configs", (err: any) => {
+            if (err) {
+                console.log("[DiscordChatter] Error creating default config.json file" + err);
+            }
+        });
+    };
+    if (!fs.existsSync("./configs/Discord-Chatter")) {
+        fs.mkdir("./configs/Discord-Chatter", (err: any) => {
+            if (err) {
+                console.log("[DiscordChatter] Error creating default config.json file" + err);
+            }
+        });
+    };
+    fs.writeFileSync("./configs/Discord-Chatter/config.json", jsonString, (err: any) => {
+        if (err) {
+            console.log("[DiscordChatter] Error creating default config.json file" + err)
+        } else {
+            console.log("[DiscordChatter] Created a default config.json file.")
+            console.log("[DiscordChatter] Please set your configuration values!");
+            console.log("[DiscordChatter] Run `dc config help` in the console for more info.");
+        }
+    });
+}
+const configFile = JSON.parse(fs.readFileSync("./configs/Discord-Chatter/config.json", "utf8"));
+
+var token = configFile.token;
+var channel = configFile.chanID;
 
 // BDSX Imports
 import { bedrockServer, MinecraftPacketIds } from 'bdsx';
 import { events } from "bdsx/event";
 
-// JSON Files
-import { version as currVersion } from "./package.json";
-import { token, chanID as channel} from "./config.json";
-
 // Discord Bot Requirements
 const Discord = require('discord.js');
-const bot = new Discord.Client({ disableEveryone: true });
+var bot = new Discord.Client({ disableEveryone: true });
 
-console.log('[DiscordChatter] Starting DiscordChatter!');
+console.log("[DiscordChatter] Starting DiscordChatter!");
 console.log(`[DiscordChatter] DiscordChatter is version ${currVersion}.`);
-try {
-    bot.login(token);
-} catch (e) {
-    if (e == "Error: An invalid token was provided") {
-        let error = new Error("You have provided an invalid Token!\nPlease run `dc config token {token}` in the console.");
-        throw error;
+bot.login(token).catch((e: string) => {
+    if (e == "Error: An invalid token was provided." || e == "Error: Incorrect login details were provided.") {
+        console.log("\n[DiscordChatter] Error in Discord.js: Invalid Login Token.");
+        console.log("[DiscordChatter] You have provided an Invalid Login Token; Please run `dc config token {token}` in the console.");
+        console.log("[DiscordChatter] DiscordChatter will not work without a proper token.\n");
     } else {
-        console.log("Nope");
+        console.log("[DiscordChatter] Uncaught Error! Please report this.");
+        throw e;
     }
-}
+});
 
 // Bot Events
 // Events related to discord.js
 
 bot.on('ready', () => {
     console.info(`[DiscordChatter] Logged in as ${bot.user.tag}!`);
-    console.info(`[DiscordChatter] DiscordChatter has started.`);
+    console.info("[DiscordChatter] DiscordChatter has started.");
 
-    SendToDiscord("Server Started!", "Server")
+    SendToDiscord("Server Started!", "Server");
     bot.user.setPresence({ activity: { name: 'Listening for chatter!' }, status: 'online' });
 });
 
@@ -73,7 +112,7 @@ events.packetAfter(MinecraftPacketIds.Text).on(ev => {
 
 // On Server Close
 events.serverClose.on(()=>{
-    SendToDiscord("Server Shutting Down!", "Server")
+    SendToDiscord("Server Shutting Down!", "Server");
     console.log('[DiscordChatter] Shutting Down.');
     bot.destroy(); // Node doesn't shutdown w/o this; It just freezes
 });
@@ -85,28 +124,50 @@ events.serverClose.on(()=>{
 
 function SendToDiscord(message: string, user: string) {
     const chan = bot.channels.get(channel);
-    chan.send("[" + user + "] " + message).catch((e: any) => {
-        if (e == "DiscordAPIError: Missing Permissions") {
-            console.log("[DiscordChatter] Error in Discord.js: Missing permissions.");
-            console.log("[DiscordChatter] Ensure the bot is in your server AND it has send permissions in the relevant channel!")
+    try {
+        chan.send("[" + user + "] " + message).catch((e: any) => {
+            if (e == "DiscordAPIError: Missing Permissions") {
+                console.log("[DiscordChatter] Error in discord.js: Missing permissions.");
+                console.log("[DiscordChatter] Ensure the bot is in your server AND it has send permissions in the relevant channel!");
+            } else {
+                console.log("[DiscordChatter] Uncaught Error! Please report this.");
+                throw e;
+            }
+        });
+    } catch (e) {
+        if (e == "TypeError: Unable to get property 'send' of undefined or null reference") {
+            console.log("\n[DiscordChatter] Failed to send message to the Discord Server!");
+            console.log("[DiscordChatter] Either your Token is incorrect, or the Channel ID is invalid.");
+            console.log("[DiscordChatter] Please double check the related values and fix them.\n");
         } else {
-            console.log("[DiscordChatter] Uncaught Error! Please report this.")
+            console.log("[DiscordChatter] Uncaught Error! Please report this.");
             throw e;
         }
-    });
+    }
 };
 
 function SendToDiscordEvent(message: string, user: string) {
     const chan = bot.channels.get(channel);
-    chan.send(user + " " + message).catch((e: any) => {
-        if (e == "DiscordAPIError: Missing Permissions") {
-            console.log("[DiscordChatter] Error in discord.js: Missing permissions.");
-            console.log("[DiscordChatter] Ensure the bot is in your server AND it has send permissions in the relevant channel!")
+    try {
+        chan.send(user + " " + message).catch((e: any) => {
+            if (e == "DiscordAPIError: Missing Permissions") {
+                console.log("[DiscordChatter] Error in discord.js: Missing permissions.");
+                console.log("[DiscordChatter] Ensure the bot is in your server AND it has send permissions in the relevant channel!");
+            } else {
+                console.log("[DiscordChatter] Uncaught Error! Please report this.");
+                throw e;
+            }
+        });
+    } catch (e) {
+        if (e == "TypeError: Unable to get property 'send' of undefined or null reference") {
+            console.log("\n[DiscordChatter] Failed to send message to the Discord Server!");
+            console.log("[DiscordChatter] Either your Token is incorrect, or the Channel ID is invalid.");
+            console.log("[DiscordChatter] Please double check the related values and fix them.\n");
         } else {
-            console.log("[DiscordChatter] Uncaught Error! Please report this.")
+            console.log("[DiscordChatter] Uncaught Error! Please report this.");
             throw e;
         }
-    });
+    }
 };
 
 function SendToGame(message: string, user: string) {
@@ -126,3 +187,23 @@ function SendToGame(message: string, user: string) {
     bedrockServer.executeCommand("say <§2[DISCORD]§r " + user + "> " + message, false);
     console.log("[" + timestamp + " CHAT] <[DISCORD] " + user + "> " + message)
 };
+
+function ReloadBot() {
+    console.log("[DiscordChatter] Stopping DiscordChatter!");
+    bot.destroy();
+
+    bot = new Discord.Client({ disableEveryone: true });
+
+    console.log("[DiscordChatter] Starting DiscordChatter!");
+    console.log(`[DiscordChatter] DiscordChatter is version ${currVersion}.`);
+    bot.login(token).catch((e: string) => {
+        if (e == "Error: An invalid token was provided." || e == "Error: Incorrect login details were provided.") {
+            console.log("\n[DiscordChatter] Error in Discord.js: Invalid Login Token.");
+            console.log("[DiscordChatter] You have provided an Invalid Login Token; Please run `dc config token {token}` in the console.");
+            console.log("[DiscordChatter] DiscordChatter will not work without a proper token.\n");
+        } else {
+            console.log("[DiscordChatter] Uncaught Error! Please report this.");
+            throw e;
+        }
+    });
+}
