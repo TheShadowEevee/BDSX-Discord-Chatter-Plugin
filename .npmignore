@@ -1,0 +1,5 @@
+
+/.git
+*.ts
+!*.d.ts
+config.json
