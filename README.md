@@ -33,4 +33,6 @@ Run `dc config {Option} {Input}` in the console to change the configuration
 | token              | Discord Bot Token  | Yes                | Console            |
 | chanID             | Discord Channel ID | Yes                | OP                 |
 
+For example, to set the channel ID the bot works in, run `dc config chanID 846147660843188235` in the console.
+
 To get a Discord Channel ID see [this Discord Help Article](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-)
