@@ -1,7 +1,7 @@
 
-# Discord-Chatter
+# DiscordChatter For BDS eXtended
 
-A simple plugin that allows communication between a BDSX enabled server and a Discord server!  
+A simple plugin that allows communication between a [BDSX enabled server](https://github.com/bdsx/bdsx) and a Discord server!  
 
 This allows you to choose a Discord Server where various server events will be posted.
 Of course, this also allows chat between the server and Discord! Any in-game messages will appear in Discord and any messages sent in the channel the plugin posts to will appear to users in-game.
