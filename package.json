@@ -4,7 +4,9 @@
   "description": "Talk to your server via Discord!",
   "main": "index.js",
   "keywords": [],
+  "homepage": "https://github.com/TheShadowEevee/BDSX-Discord-Chatter-Plugin#readme",
   "author": "TheShadowEevee",
+  "repository": "github:TheShadowEevee/BDSX-Discord-Chatter-Plugin",
   "license": "ISC",
   "bdsxPlugin": true,
   "scripts": {
@@ -18,6 +20,6 @@
     "typescript": "^4.2.3"
   },
   "dependencies": {
-    "discord.js": "^11.6.4"
+    "discord.js": "^11.6.4 <12.0.0"
   }
 }
