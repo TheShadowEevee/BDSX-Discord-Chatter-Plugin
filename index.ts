@@ -57,7 +57,7 @@ var bot = new Discord.Client({ disableEveryone: true });
 
 console.log("[DiscordChatter] Starting DiscordChatter!");
 console.log(`[DiscordChatter] DiscordChatter is version ${currVersion}.`);
-if ( GetConfig("BotEnabled")  == "true" ) {
+if ( GetConfig("BotEnabled")  == true ) {
     bot.login(GetConfig("token")).catch((e: string) => {
         if (e == "Error: An invalid token was provided." || e == "Error: Incorrect login details were provided.") {
             console.log("\n[DiscordChatter] Error in Discord.js: Invalid Login Token.");
@@ -77,7 +77,7 @@ bot.on('ready', () => {
     console.info(`[DiscordChatter] Logged in as ${bot.user.tag}!`);
     console.info("[DiscordChatter] DiscordChatter has started.");
 
-    if ( GetConfig("EnableServerStartStopMessages")  == "true" ) {
+    if ( GetConfig("EnableServerStartStopMessages")  == true ) {
         SendToDiscord("Server Started!", "Server");
     }
     bot.user.setPresence({ activity: { name: 'Listening for chatter!' }, status: 'online' });
@@ -99,7 +99,7 @@ events.serverLog.on(ev => {
     let playerJoinRegex = /^\[INFO] Player connected: [a-zA-Z0-9]+, xuid: [0-9]+$/i;
     let playerLeaveRegex = /^\[INFO] Player disconnected: [a-zA-Z0-9]+, xuid: [0-9]+$/i;
 
-    if ( GetConfig("EnableJoinLeaveMessages") == "true" ) {
+    if ( GetConfig("EnableJoinLeaveMessages") == true ) {
         // Player Join (Extract Username)
         if (playerJoinRegex.test(ev)) {
             let slice = ev.replace(/^\[INFO] Player connected: /g, '');
@@ -121,7 +121,7 @@ events.packetAfter(MinecraftPacketIds.Text).on(ev => {
 
 // On Server Close
 events.serverClose.on(()=>{
-    if ( GetConfig("EnableServerStartStopMessages")  == "true" ) {
+    if ( GetConfig("EnableServerStartStopMessages")  == true ) {
         SendToDiscord("Server Shutting Down!", "Server");
         console.log('[DiscordChatter] Shutting Down.');
     }
@@ -134,7 +134,7 @@ events.serverClose.on(()=>{
 // These functions facilitate communication between Discord and the Server.
 
 function SendToDiscord(message: string, user: string) {
-    if ( GetConfig("BotEnabled") == "true" ) {
+    if ( GetConfig("BotEnabled") == true ) {
         const chan = bot.channels.get(GetConfig("chanID"));
         try {
             chan.send("[" + user + "] " + message).catch((e: any) => {
@@ -160,7 +160,7 @@ function SendToDiscord(message: string, user: string) {
 };
 
 function SendToDiscordEvent(message: string, user: string) {
-    if ( GetConfig("BotEnabled") == "true" ) {
+    if ( GetConfig("BotEnabled") == true ) {
         const chan = bot.channels.get( GetConfig("chanID") );
         try {
             chan.send(user + " " + message).catch((e: any) => {
@@ -200,11 +200,11 @@ function SendToGame(message: string, user: string) {
 
     // Actual Messages
     bedrockServer.executeCommand("say <§2[DISCORD]§r " + user + "> " + message, false);
-    if ( GetConfig("PostDiscordMessagesToConsole") ) { console.log("[" + timestamp + " CHAT] <[DISCORD] " + user + "> " + message) };
+    if ( GetConfig("PostDiscordMessagesToConsole") == true ) { console.log("[" + timestamp + " CHAT] <[DISCORD] " + user + "> " + message) };
 };
 
 function ReloadBot() {
-    if ( GetConfig("BotEnabled") == "true" ) {
+    if ( GetConfig("BotEnabled") == true ) {
         console.log("[DiscordChatter] Stopping DiscordChatter!");
         bot.destroy();
 
@@ -285,29 +285,41 @@ function UpdateConfig(key: string, value: string | boolean | undefined) {
                 break;
 
             case "BotEnabled":
-                if ( value == "true" || value == "false" ) {
-                    config.BotEnabled = value;
+                if ( value == "true" ) {
+                    config.BotEnabled = true;
+                    break;
+                } else if (value == "false" ) {
+                    config.BotEnabled = false;
                     break;
                 }
                 return 1;
 
             case "PostDiscordMessagesToConsole":
-                if ( value == "true" || value == "false" ) {
-                    config.PostDiscordMessagesToConsole = value;
+                if ( value == "true" ) {
+                    config.PostDiscordMessagesToConsole = true;
+                    break;
+                } else if (value == "false" ) {
+                    config.PostDiscordMessagesToConsole = false;
                     break;
                 }
                 return 1;
 
             case "EnableJoinLeaveMessages":
-                if ( value == "true" || value == "false" ) {
-                    config.EnableJoinLeaveMessages = value;
+                if ( value == "true" ) {
+                    config.EnableJoinLeaveMessages = true;
+                    break;
+                } else if (value == "false" ) {
+                    config.EnableJoinLeaveMessages = false;
                     break;
                 }
                 return 1;
 
             case "EnableServerStartStopMessages":
-                if ( value == "true" || value == "false" ) {
-                    config.EnableServerStartStopMessages = value;
+                if ( value == "true" ) {
+                    config.EnableServerStartStopMessages = true;
+                    break;
+                } else if (value == "false" ) {
+                    config.EnableServerStartStopMessages = false;
                     break;
                 }
                 return 1;
