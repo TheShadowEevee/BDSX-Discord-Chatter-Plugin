@@ -8,7 +8,9 @@ Of course, this also allows chat between the server and Discord! Any in-game mes
 
 ## Installation
 
-- Instructions Soon.
+As of right now, the best way to install the plugin is by downloading the repository.
+Once it's downloaded, extract the folder "BDSX-Discord-Chatter-Plugin-main" to your plugins folder of your BDSX server.
+Hopefully this will be accessable via npm in the future.
 
 ## Setup
 
