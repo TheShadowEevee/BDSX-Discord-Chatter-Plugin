@@ -7,8 +7,10 @@
 
 // JSON Files
 import { version as currVersion } from "./package.json";
-// Create config json if it doesn't exist
+
 const fs = require('fs')
+
+// Create config json if it doesn't exist
 if (!fs.existsSync("./configs/Discord-Chatter/config.json") ) {
     const defaultConfig = {
         "token": "null",
@@ -33,7 +35,7 @@ if (!fs.existsSync("./configs/Discord-Chatter/config.json") ) {
             }
         });
     };
-    fs.writeFileSync("./configs/Discord-Chatter/config.json", jsonString, (err: any) => {
+    fs.writeFileSync("./configs/Discord-Chatter/config.json", JSON.stringify(jsonString, null, 2), (err: any) => {
         if (err) {
             console.log("[DiscordChatter] Error creating default config.json file" + err)
         } else {
@@ -43,14 +45,6 @@ if (!fs.existsSync("./configs/Discord-Chatter/config.json") ) {
         }
     });
 }
-const configFile = JSON.parse(fs.readFileSync("./configs/Discord-Chatter/config.json", "utf8"));
-
-var enabled = configFile.BotEnabled;
-var token = configFile.token;
-var channel = configFile.chanID;
-var postToConsole = configFile.PostDiscordMessagesToConsole;
-var joinLeaveMSG = configFile.EnableJoinLeaveMessages;
-var startStopMSG = configFile.EnableServerStartStopMessages;
 
 // BDSX Imports
 import { bedrockServer, MinecraftPacketIds, command } from 'bdsx';
@@ -63,16 +57,14 @@ var bot = new Discord.Client({ disableEveryone: true });
 
 console.log("[DiscordChatter] Starting DiscordChatter!");
 console.log(`[DiscordChatter] DiscordChatter is version ${currVersion}.`);
-if ( enabled ) {
-    bot.login(token).catch((e: string) => {
+if ( GetConfig("BotEnabled")  == "true" ) {
+    bot.login(GetConfig("token")).catch((e: string) => {
         if (e == "Error: An invalid token was provided." || e == "Error: Incorrect login details were provided.") {
             console.log("\n[DiscordChatter] Error in Discord.js: Invalid Login Token.");
             console.log("[DiscordChatter] You have provided an Invalid Login Token; Please run `dc config token {token}` in the console.");
             console.log("[DiscordChatter] DiscordChatter will not work without a proper token.\n");
-            enabled = false;
         } else {
             console.log("[DiscordChatter] Uncaught Error! Please report this.");
-            enabled = false;
             throw e;
         }
     });
@@ -85,14 +77,14 @@ bot.on('ready', () => {
     console.info(`[DiscordChatter] Logged in as ${bot.user.tag}!`);
     console.info("[DiscordChatter] DiscordChatter has started.");
 
-    if (startStopMSG) {
+    if ( GetConfig("EnableServerStartStopMessages")  == "true" ) {
         SendToDiscord("Server Started!", "Server");
     }
     bot.user.setPresence({ activity: { name: 'Listening for chatter!' }, status: 'online' });
 });
 
 bot.on('message', (msg: { channel: { id: string; }; author: { bot: string | boolean; username: string; }; content: string; }) => {
-    if (msg.channel.id == channel && msg.author.bot != true) {
+    if (msg.channel.id == GetConfig("chanID") && msg.author.bot != true) {
         SendToGame(msg.content, msg.author.username);
     }
 });
@@ -107,7 +99,7 @@ events.serverLog.on(ev => {
     let playerJoinRegex = /^\[INFO] Player connected: [a-zA-Z0-9]+, xuid: [0-9]+$/i;
     let playerLeaveRegex = /^\[INFO] Player disconnected: [a-zA-Z0-9]+, xuid: [0-9]+$/i;
 
-    if ( joinLeaveMSG ) {
+    if ( GetConfig("EnableJoinLeaveMessages") == "true" ) {
         // Player Join (Extract Username)
         if (playerJoinRegex.test(ev)) {
             let slice = ev.replace(/^\[INFO] Player connected: /g, '');
@@ -129,7 +121,7 @@ events.packetAfter(MinecraftPacketIds.Text).on(ev => {
 
 // On Server Close
 events.serverClose.on(()=>{
-    if (startStopMSG) {
+    if ( GetConfig("EnableServerStartStopMessages")  == "true" ) {
         SendToDiscord("Server Shutting Down!", "Server");
         console.log('[DiscordChatter] Shutting Down.');
     }
@@ -142,8 +134,8 @@ events.serverClose.on(()=>{
 // These functions facilitate communication between Discord and the Server.
 
 function SendToDiscord(message: string, user: string) {
-    if ( enabled ) {
-        const chan = bot.channels.get(channel);
+    if ( GetConfig("BotEnabled") == "true" ) {
+        const chan = bot.channels.get(GetConfig("chanID"));
         try {
             chan.send("[" + user + "] " + message).catch((e: any) => {
                 if (e == "DiscordAPIError: Missing Permissions") {
@@ -168,8 +160,8 @@ function SendToDiscord(message: string, user: string) {
 };
 
 function SendToDiscordEvent(message: string, user: string) {
-    if ( enabled ) {
-        const chan = bot.channels.get(channel);
+    if ( GetConfig("BotEnabled") == "true" ) {
+        const chan = bot.channels.get( GetConfig("chanID") );
         try {
             chan.send(user + " " + message).catch((e: any) => {
                 if (e == "DiscordAPIError: Missing Permissions") {
@@ -208,11 +200,11 @@ function SendToGame(message: string, user: string) {
 
     // Actual Messages
     bedrockServer.executeCommand("say <§2[DISCORD]§r " + user + "> " + message, false);
-    if ( postToConsole ) { console.log("[" + timestamp + " CHAT] <[DISCORD] " + user + "> " + message) };
+    if ( GetConfig("PostDiscordMessagesToConsole") ) { console.log("[" + timestamp + " CHAT] <[DISCORD] " + user + "> " + message) };
 };
 
 function ReloadBot() {
-    if ( enabled ) {
+    if ( GetConfig("BotEnabled") == "true" ) {
         console.log("[DiscordChatter] Stopping DiscordChatter!");
         bot.destroy();
 
@@ -220,7 +212,7 @@ function ReloadBot() {
 
         console.log("[DiscordChatter] Starting DiscordChatter!");
         console.log(`[DiscordChatter] DiscordChatter is version ${currVersion}.`);
-        bot.login(token).catch((e: string) => {
+        bot.login(GetConfig("token")).catch((e: string) => {
             if (e == "Error: An invalid token was provided." || e == "Error: Incorrect login details were provided.") {
                 console.log("\n[DiscordChatter] Error in Discord.js: Invalid Login Token.");
                 console.log("[DiscordChatter] You have provided an Invalid Login Token; Please run `dc config token {token}` in the console.");
@@ -235,6 +227,105 @@ function ReloadBot() {
         throw disabled;
     }
 }
+
+function GetConfig(key: any) {
+    var config = require(process.cwd() + "/configs/Discord-Chatter/config.json");
+    switch (key) {
+        case "token":
+            return config.token;
+        case "chanID":
+            return config.chanID;
+        case "BotEnabled":
+            return config.BotEnabled;
+        case "PostDiscordMessagesToConsole":
+            return config.PostDiscordMessagesToConsole;
+        case "EnableJoinLeaveMessages":
+            return config.EnableJoinLeaveMessages;
+        case "EnableServerStartStopMessages":
+            return config.EnableServerStartStopMessages;
+        default:
+            return null;
+    }
+}
+
+function UpdateConfig(key: string, value: string | boolean | undefined) {
+    var defaultConfig = {
+        "token": "null",
+        "chanID": "null",
+        "BotEnabled": true,
+        "PostDiscordMessagesToConsole": false,
+        "EnableJoinLeaveMessages": true,
+        "EnableServerStartStopMessages": true
+    }
+    if (!fs.existsSync("./configs/Discord-Chatter/config.json") ) {
+        var jsonString = JSON.parse(JSON.stringify(defaultConfig));
+        jsonString[key] = value;
+        fs.writeFileSync("./configs/Discord-Chatter/config.json", JSON.stringify(jsonString, null, 2), (err: any) => {
+            if (err) {
+                console.log("[DiscordChatter] Error creating default config.json file" + err)
+                return 1;
+            } else {
+                console.log("[DiscordChatter] Created a default config.json file.")
+                console.log("[DiscordChatter] Please set your configuration values!");
+                console.log("[DiscordChatter] Run `dc config help` in the console for more info.");
+                return 1;
+            }
+        });
+        return 0;
+    } else {
+        var config = require(process.cwd() + "/configs/Discord-Chatter/config.json");
+
+        switch (key) {
+            case "token":
+                config.token = value;
+                break;
+
+            case "chanID":
+                config.chanID = value;
+                break;
+
+            case "BotEnabled":
+                if ( value == "true" || value == "false" ) {
+                    config.BotEnabled = value;
+                    break;
+                }
+                return 1;
+
+            case "PostDiscordMessagesToConsole":
+                if ( value == "true" || value == "false" ) {
+                    config.PostDiscordMessagesToConsole = value;
+                    break;
+                }
+                return 1;
+
+            case "EnableJoinLeaveMessages":
+                if ( value == "true" || value == "false" ) {
+                    config.EnableJoinLeaveMessages = value;
+                    break;
+                }
+                return 1;
+
+            case "EnableServerStartStopMessages":
+                if ( value == "true" || value == "false" ) {
+                    config.EnableServerStartStopMessages = value;
+                    break;
+                }
+                return 1;
+
+            default:
+                return 1;
+        }
+
+        fs.writeFileSync("./configs/Discord-Chatter/config.json", JSON.stringify(config, null, 2), (err: any) => {
+            if (err) {
+                console.log("[DiscordChatter] Error writing to config.json file" + err)
+                return 1;
+            }
+        });
+        return 0;
+    }
+}
+
 
 
 // Register Commands
@@ -263,29 +354,87 @@ events.serverOpen.on(()=>{
                 tellRaw(playerName, "/dc reload - Reloads the Discord Bot")
                 tellRaw(playerName, "/dc config - Used to change config options")
                 tellRaw(playerName, "")
-                tellRaw(playerName, "§4Please note that most commands require OP.§r")
-                return 0;
+                tellRaw(playerName, "§4Please note that most commands require OP.§r");
+                return;
 
             case "config":
-                tellRaw(playerName, "Unimplimented.")
-                return 0;
+                switch (param.second) {
+                    case "token":
+                        if ( playerName == "Server" ) { // This should be safe as the odds of a player named "Server" AND being an OP are almost 0.
+                            UpdateConfig("token", param.third);
+                            tellRaw(playerName, "Token Updated; Run `dc reload` to log in.");
+                            return;
+                        }
+                        tellRaw(playerName, "Tokens can only be updated via the server console.");
+
+                    case "chanID":
+                        UpdateConfig("chanID", param.third);
+                        tellRaw(playerName, `\"chanID\" set to \"§b${param.third}§r\"`);
+                        return;
+
+                    case "BotEnabled":
+                        if ( UpdateConfig("BotEnabled", param.third) == 0 ) {
+                            tellRaw(playerName, `\"BotEnabled\" set to \"§a${param.third}§r\"`);
+                        } else {
+                            tellRaw(playerName, `Invalid value \"${param.third}\". Use \"dc config help\" for more info.`);
+                        }
+                        return;
+
+                    case "PostDiscordMessagesToConsole":
+                        if ( UpdateConfig("PostDiscordMessagesToConsole", param.third) == 0 ) {
+                            tellRaw(playerName, `\"PostDiscordMessagesToConsole\" set to \"§a${param.third}§r\"`);
+                        } else {
+                            tellRaw(playerName, `Invalid value \"${param.third}\". Use \"dc config help\" for more info.`);
+                        }
+                        return;
+
+                    case "EnableJoinLeaveMessages":
+                        if ( UpdateConfig("EnableJoinLeaveMessages", param.third) == 0 ) {
+                            tellRaw(playerName, `\"EnableJoinLeaveMessages\" set to \"§a${param.third}§r\"`);
+                        } else {
+                            tellRaw(playerName, `Invalid value \"${param.third}\". Use \"dc config help\" for more info.`);
+                        }
+                        return;
+
+                    case "EnableServerStartStopMessages":
+                        if ( UpdateConfig("EnableServerStartStopMessages", param.third) == 0 ) {
+                            tellRaw(playerName, `\"EnableServerStartStopMessages\" set to \"§a${param.third}§r\"`);
+                        } else {
+                            tellRaw(playerName, `Invalid value \"${param.third}\". Use \"dc config help\" for more info.`);
+                        }
+                        return;
+
+                    case "help":
+                        tellRaw(playerName, "§3----- DiscordChatter Config Help -----§r")
+                        tellRaw(playerName, "/dc config {Key} {Value} - Set a config value (Case-Sensitive)")
+                        tellRaw(playerName, "A list of keys can be found at https://github.com/TheShadowEevee/BDSX-Discord-Chatter-Plugin#readme")
+                        tellRaw(playerName, "Instructions on how to get some values can be found there as well.")
+                        tellRaw(playerName, "")
+                        tellRaw(playerName, "§4Please note that most commands require OP.§r");
+                        tellRaw(playerName, "§4You MUST be using the server console to modify the bot token.§r");
+                        return;
+
+                    default:
+                        tellRaw(playerName, `Invalid argument \"${param.second}\". Use \"dc config help\" for more info.`);
+                        return;
+                }
 
             case "reload":
-                tellRaw(playerName, "Reloading DiscordChatter!")
+                tellRaw(playerName, "Reloading DiscordChatter!");
                 try {
                     ReloadBot();
                 } catch (e) {
                     if (e == "Error: Bot is disabled!") {
-                        tellRaw(playerName, "DiscordChatter is disabled. Stopping the reload.")
+                        tellRaw(playerName, "DiscordChatter is disabled. Stopping the reload.");
                     } else {
                         throw e;
                     }
                 }
-                return 0;
+                return;
 
             default:
-                tellRaw(playerName, `Invalid argument \"${param.first}\". Use \"dc help\" for a list of commands.`)
-                return 0;
+                tellRaw(playerName, `Invalid argument \"${param.first}\". Use \"dc help\" for a list of commands.`);
+                return;
         }
     }, {
             first: [CxxString, true], // Help, Config, Reload, Other
