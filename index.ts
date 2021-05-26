@@ -8,7 +8,8 @@
 // JSON Files
 import { version as currVersion } from "./package.json";
 
-const fs = require('fs')
+const fs = require('fs');
+const path = require('path');
 
 // Create config json if it doesn't exist
 if (!fs.existsSync("./configs/Discord-Chatter/config.json") ) {
@@ -205,14 +206,10 @@ function SendToGame(message: string, user: string) {
 
 function ReloadBot() {
     if ( GetConfig("BotEnabled") == true ) {
-        console.log("[DiscordChatter] Stopping DiscordChatter!");
-        bot.destroy();
 
-        bot = new Discord.Client({ disableEveryone: true });
-
-        console.log("[DiscordChatter] Starting DiscordChatter!");
+        console.log("[DiscordChatter] Restarting DiscordChatter!");
         console.log(`[DiscordChatter] DiscordChatter is version ${currVersion}.`);
-        bot.login(GetConfig("token")).catch((e: string) => {
+        bot.destroy().then(() => bot.login(GetConfig("token")).catch((e: string) => {
             if (e == "Error: An invalid token was provided." || e == "Error: Incorrect login details were provided.") {
                 console.log("\n[DiscordChatter] Error in Discord.js: Invalid Login Token.");
                 console.log("[DiscordChatter] You have provided an Invalid Login Token; Please run `dc config token {token}` in the console.");
@@ -221,7 +218,7 @@ function ReloadBot() {
                 console.log("[DiscordChatter] Uncaught Error! Please report this.");
                 throw e;
             }
-        });
+        }));
     } else {
         let disabled = new Error("Bot is disabled!");
         throw disabled;
@@ -229,7 +226,9 @@ function ReloadBot() {
 }
 
 function GetConfig(key: any) {
-    var config = require(process.cwd() + "/configs/Discord-Chatter/config.json");
+    const configPath = path.resolve(__dirname, process.cwd() + "/configs/Discord-Chatter/config.json");
+    const config = require(configPath);
+
     switch (key) {
         case "token":
             return config.token;
