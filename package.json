@@ -1,6 +1,6 @@
 {
   "name": "@bdsx/discordchatter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Talk to your server via Discord!",
   "main": "index.js",
   "keywords": [],
