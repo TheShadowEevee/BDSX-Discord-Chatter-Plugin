@@ -21,7 +21,7 @@ if (!fs.existsSync("./configs/Discord-Chatter/config.json") ) {
         "EnableJoinLeaveMessages": true,
         "EnableServerStartStopMessages": true
     }
-    const jsonString = JSON.stringify(defaultConfig)
+    const jsonString = JSON.parse(JSON.stringify(defaultConfig));
     if (!fs.existsSync("./configs")) {
         fs.mkdir("./configs", (err: any) => {
             if (err) {
