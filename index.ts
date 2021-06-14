@@ -379,8 +379,9 @@ events.serverOpen.on(()=>{
                         tellRaw(playerName, "Tokens can only be updated via the server console.");
 
                     case "chanID":
-                        UpdateConfig("chanID", param.third);
-                        tellRaw(playerName, `\"chanID\" set to \"§b${param.third}§r\"`);
+                        var chanID = param.third?.replace("chanID_", "");
+                        UpdateConfig("chanID", chanID);
+                        tellRaw(playerName, `\"chanID\" set to \"§b${chanID}§r\"`);
                         return;
 
                     case "BotEnabled":

@@ -28,6 +28,7 @@ Hopefully this will be accessable via npm in the future.
     - If anyone gains access to your bot regenerate this token ASAP from this screen.
 - Start the server
 - Run the commands in the below table to configure the bot!
+- The config file can also be found in `{bdsx root}/bedrock_server/configs/Discord-Chatter/config.json`.
 
 ## Configuration
 
@@ -37,13 +38,14 @@ Run `dc config {Option} {Input}` in the console to change the configuration
 | Config Option                 | Input Type                    | Required                      | Permission Needed             |
 | ----------------------------- | ----------------------------- | ----------------------------- | ----------------------------- |
 | token                         | Discord Bot Token             | Yes                           | Console                       |
-| chanID                        | Discord Channel ID            | Yes                           | OP                            |
+| chanID                        | Discord Channel ID (See Note) | Yes                           | OP                            |
 | BotEnabled                    | Boolean (True/False)          | No                            | OP                            |
 | PostDiscordMessagesToConsole  | Boolean (True/False)          | No                            | OP                            |
 | EnableJoinLeaveMessages       | Boolean (True/False)          | No                            | OP                            |
 | EnableServerStartStopMessages | Boolean (True/False)          | No                            | OP                            |
 
-For example, to set the channel ID the bot works in, run `dc config chanID 846147660843188235` in the console.
+If you are setting the channel ID, prefix it with "chanID_"
+For example, to set the channel ID the bot works in, run `dc config chanID chanID_846147660843188235` in the console.
 
 To get a Discord Channel ID see [this Discord Help Article](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-)
 
