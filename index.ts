@@ -1,4 +1,4 @@
-/* Discord Chatter Main File
+io;l/* Discord Chatter Main File
  * This is a plugin for BDSX
  * All code within this project is under the ISC License.
  * Copyright (c) 2021, TheShadowEevee and Github Contributors (https://github.com/TheShadowEevee/BDSX-Discord-Chatter-Plugin)
@@ -97,8 +97,8 @@ bot.on('message', (msg: { channel: { id: string; }; author: { bot: string | bool
 
 // Player Join
 events.serverLog.on(ev => {
-    let playerJoinRegex = /^\[INFO] Player connected: [a-zA-Z0-9]+, xuid: [0-9]+$/i;
-    let playerLeaveRegex = /^\[INFO] Player disconnected: [a-zA-Z0-9]+, xuid: [0-9]+$/i;
+    let playerJoinRegex = /^\[INFO] Player connected: [a-zA-Z0-9\s]+, xuid: [0-9]+$/i;
+    let playerLeaveRegex = /^\[INFO] Player disconnected: [a-zA-Z0-9\s]+, xuid: [0-9]+$/i;
 
     if ( GetConfig("EnableJoinLeaveMessages") == true ) {
         // Player Join (Extract Username)
