@@ -1,4 +1,4 @@
-io;l/* Discord Chatter Main File
+/* Discord Chatter Main File
  * This is a plugin for BDSX
  * All code within this project is under the ISC License.
  * Copyright (c) 2021, TheShadowEevee and Github Contributors (https://github.com/TheShadowEevee/BDSX-Discord-Chatter-Plugin)
