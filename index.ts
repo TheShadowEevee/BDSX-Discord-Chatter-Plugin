@@ -100,15 +100,18 @@ events.serverLog.on(ev => {
     let playerJoinRegex = /^\[INFO] Player connected: [a-zA-Z0-9\s]+, xuid: [0-9]+$/i;
     let playerLeaveRegex = /^\[INFO] Player disconnected: [a-zA-Z0-9\s]+, xuid: [0-9]+$/i;
 
+    let playerJoinRegexNew = /$1[^\]]*] Player connected: [a-zA-Z]+, xuid: [0-9]+$/i;
+    let playerLeaveRegexNew = /$1[^\]]*] Player connected: [a-zA-Z]+, xuid: [0-9]+$/i;
+
     if ( GetConfig("EnableJoinLeaveMessages") == true ) {
         // Player Join (Extract Username)
-        if (playerJoinRegex.test(ev)) {
+        if (playerJoinRegex.test(ev) || playerJoinRegexNew.test(ev)) {
             let slice = ev.replace(/^\[INFO] Player connected: /g, '');
             SendToDiscordEvent("has joined the server!", slice.replace(/, xuid: [0-9]+/g, ''));
         };
 
         // Player Leave (Extract Username)
-        if (playerLeaveRegex.test(ev)) {
+        if (playerLeaveRegex.test(ev) || playerLeaveRegexNew.test(ev)) {
             let slice = ev.replace(/^\[INFO] Player disconnected: /g, '');
             SendToDiscordEvent("has left the server!", slice.replace(/, xuid: [0-9]+/g, ''));
         };
