@@ -51,6 +51,8 @@ if (!fs.existsSync("./configs/Discord-Chatter/config.json") ) {
 import { bedrockServer, MinecraftPacketIds, command } from 'bdsx';
 import { events } from "bdsx/event";
 import { CxxString } from "bdsx/nativetype";
+import { NetworkIdentifier } from "bdsx/bds/networkidentifier";
+
 
 // Discord Bot Requirements
 const Discord = require('discord.js');
@@ -95,23 +97,41 @@ bot.on('message', (msg: { channel: { id: string; }; author: { bot: string | bool
 // BDSX Events
 // These are BDS defined events that should be tracked or a message should be sent on.
 
+// Player List
+const connectionList = new Map<NetworkIdentifier, string>();
+
 // Player Join
-events.playerJoin.on(ev => {
+events.packetAfter(MinecraftPacketIds.Login).on((ptr, networkIdentifier, packetId) => {
+
+    const connreq = ptr.connreq;
+    const cert = connreq.cert;
+    const username = cert.getId();
+
+    if (username) connectionList.set(networkIdentifier, username);
 
     if ( GetConfig("EnableJoinLeaveMessages") == true ) {
         // Player Join (Extract Username)
-        SendToDiscordEvent("has joined the server!", ev.player.getName());
+        SendToDiscordEvent("has joined the server!", username);
     }
 });
 
-events.packetRaw(MinecraftPacketIds.Disconnect).on(ev => {
-
-    SendToDiscord(ev.getString(), "A");
+// Player Leave
+events.networkDisconnected.on(networkIdentifier => {
+    console.log("Test AAAA")
+    console.log(GetConfig("EnableJoinLeaveMessages"))
 
     if ( GetConfig("EnableJoinLeaveMessages") == true ) {
+        const id = connectionList.get(networkIdentifier);
+        connectionList.delete(networkIdentifier);
+
+        console.log("Test2")
+        console.log(`${id}`)
+
         // Player Leave (Extract Username)
-        SendToDiscordEvent("has left the server!", ev.getString());
+        SendToDiscordEvent("has left the server!", id);
     }
+
+    console.log("a")
 });
 
 // Chat Message Sent
