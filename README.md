@@ -51,5 +51,4 @@ To get a Discord Channel ID see [this Discord Help Article](https://support.disc
 
 ## Incompatibilities
 
-- Any plugin that modifies the user join/leave text in the console breaks related functionality in the plugin.
 - Due to issues with Chakra, discord.js needs to be below version 12. This will be changed ASAP once a fix is made upstream. See https://github.com/chakra-core/ChakraCore/issues/3448
