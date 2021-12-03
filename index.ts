@@ -100,6 +100,15 @@ bot.on('message', (msg: { channel: { id: string; }; author: { bot: string | bool
 // Player List
 const connectionList = new Map<NetworkIdentifier, string>();
 
+// BDS Initialized?
+var serverAlive = false;
+
+// BDS Startup
+events.serverOpen.on(() => serverAlive = true);
+
+// BDS Shutdown
+events.serverStop.on(() => serverAlive = false);
+
 // Player Join
 events.packetAfter(MinecraftPacketIds.Login).on((ptr, networkIdentifier, packetId) => {
 
@@ -206,6 +215,10 @@ function SendToDiscordEvent(message: string, user: string) {
 };
 
 function SendToGame(message: string, user: string) {
+
+    if (serverAlive == false) {
+        return;
+    }
 
     // Timestamp
     var date_time = new Date();
