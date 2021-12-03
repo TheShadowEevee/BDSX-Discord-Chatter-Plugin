@@ -96,25 +96,21 @@ bot.on('message', (msg: { channel: { id: string; }; author: { bot: string | bool
 // These are BDS defined events that should be tracked or a message should be sent on.
 
 // Player Join
-events.serverLog.on(ev => {
-    let playerJoinRegex = /^\[INFO] Player connected: [a-zA-Z0-9\s]+, xuid: [0-9]+$/i;
-    let playerLeaveRegex = /^\[INFO] Player disconnected: [a-zA-Z0-9\s]+, xuid: [0-9]+$/i;
-
-    let playerJoinRegexNew = /$1[^\]]*] Player connected: [a-zA-Z]+, xuid: [0-9]+$/i;
-    let playerLeaveRegexNew = /$1[^\]]*] Player connected: [a-zA-Z]+, xuid: [0-9]+$/i;
+events.playerJoin.on(ev => {
 
     if ( GetConfig("EnableJoinLeaveMessages") == true ) {
         // Player Join (Extract Username)
-        if (playerJoinRegex.test(ev) || playerJoinRegexNew.test(ev)) {
-            let slice = ev.replace(/^\[INFO] Player connected: /g, '');
-            SendToDiscordEvent("has joined the server!", slice.replace(/, xuid: [0-9]+/g, ''));
-        };
+        SendToDiscordEvent("has joined the server!", ev.player.getName());
+    }
+});
 
+events.packetRaw(MinecraftPacketIds.Disconnect).on(ev => {
+
+    SendToDiscord(ev.getString(), "A");
+
+    if ( GetConfig("EnableJoinLeaveMessages") == true ) {
         // Player Leave (Extract Username)
-        if (playerLeaveRegex.test(ev) || playerLeaveRegexNew.test(ev)) {
-            let slice = ev.replace(/^\[INFO] Player disconnected: /g, '');
-            SendToDiscordEvent("has left the server!", slice.replace(/, xuid: [0-9]+/g, ''));
-        };
+        SendToDiscordEvent("has left the server!", ev.getString());
     }
 });
 
