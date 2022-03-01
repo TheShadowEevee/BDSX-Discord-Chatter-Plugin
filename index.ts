@@ -126,21 +126,13 @@ events.packetAfter(MinecraftPacketIds.Login).on((ptr, networkIdentifier, packetI
 
 // Player Leave
 events.networkDisconnected.on(networkIdentifier => {
-    console.log("Test AAAA")
-    console.log(GetConfig("EnableJoinLeaveMessages"))
-
     if ( GetConfig("EnableJoinLeaveMessages") == true ) {
         const id = connectionList.get(networkIdentifier);
         connectionList.delete(networkIdentifier);
 
-        console.log("Test2")
-        console.log(`${id}`)
-
         // Player Leave (Extract Username)
         SendToDiscordEvent("has left the server!", id);
     }
-
-    console.log("a")
 });
 
 // Chat Message Sent
@@ -238,6 +230,17 @@ function SendToGame(message: string, user: string) {
     var seconds = ("0" + date_time.getSeconds()).slice(-2);
     // Prints YYYY-MM-DD HH:MM:SS format - Allow format changing in config!
     var timestamp = year + "-" + month + "-" + date + " " + hours + ":" + minutes + ":" + seconds;
+
+    var potential_emotes = true;
+
+    while (potential_emotes == true) {
+        let emote = message.match(/.*<a?:(..+?(?=:[0-9]+>)):[0-9]+>.*/i)
+        if (emote == null) {
+            potential_emotes = false;
+        } else {
+            message = message.replace(new RegExp(`<a?:${emote[1]}:[0-9]+>`,'gi'), ":" + emote[1] + ":")
+        }
+    }
 
     // Actual Messages
     bedrockServer.executeCommand("say <§2[DISCORD]§r " + user + "> " + message, false);
