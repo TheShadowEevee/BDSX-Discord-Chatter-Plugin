@@ -44,7 +44,7 @@ Run `dc config {Option} {Input}` in the console to change the configuration
 | EnableJoinLeaveMessages       | Boolean (True/False)          | No                            | OP                            |
 | EnableServerStartStopMessages | Boolean (True/False)          | No                            | OP                            |
 
-If you are setting the channel ID, prefix it with "chanID_"
+If you are setting the channel ID, surround the id in quotes or prefix it with "chanID_"
 For example, to set the channel ID the bot works in, run `dc config chanID chanID_846147660843188235` in the console.
 
 To get a Discord Channel ID see [this Discord Help Article](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-)
