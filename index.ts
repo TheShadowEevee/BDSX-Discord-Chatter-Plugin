@@ -180,6 +180,10 @@ function SendToDiscord(message: string, user: string) {
                 console.log("\n[DiscordChatter] Failed to send message to the Discord Server!");
                 console.log("[DiscordChatter] Either your Token is incorrect, or the Channel ID is invalid.");
                 console.log("[DiscordChatter] Please double check the related values and fix them.\n");
+            } else if (e.contains == "UnhandledPromiseRejectionWarning: Error: connect ETIMEDOUT") {
+                console.log("\n[DiscordChatter] Failed to send message to the Discord Server!");
+                console.log("[DiscordChatter] The request timed out. The message will not be sent.");
+                console.log("[DiscordChatter] Check the server connection and the Discord API status.\n");
             } else {
                 console.log("[DiscordChatter] Uncaught Error! Please report this.");
                 throw e;
@@ -206,6 +210,10 @@ function SendToDiscordEvent(message: string, user: string) {
                 console.log("\n[DiscordChatter] Failed to send message to the Discord Server!");
                 console.log("[DiscordChatter] Either your Token is incorrect, or the Channel ID is invalid.");
                 console.log("[DiscordChatter] Please double check the related values and fix them.\n");
+            } else if (e.contains == "UnhandledPromiseRejectionWarning: Error: connect ETIMEDOUT") {
+                console.log("\n[DiscordChatter] Failed to send message to the Discord Server!");
+                console.log("[DiscordChatter] The request timed out. The message will not be sent.");
+                console.log("[DiscordChatter] Check the server connection and the Discord API status.\n");
             } else {
                 console.log("[DiscordChatter] Uncaught Error! Please report this.");
                 throw e;
