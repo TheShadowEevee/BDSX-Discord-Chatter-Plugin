@@ -1,9 +1,9 @@
 {
   "name": "@bdsx/discordchatter",
-  "version": "1.0.2",
-  "description": "Talk to your server via Discord!",
+  "version": "1.1.0",
+  "description": "Integrate Discord with BDSX! Send messages to and from your servers!",
   "main": "index.js",
-  "keywords": [],
+  "keywords": ["Discord", "BDSX", "Server Utility"],
   "homepage": "https://github.com/TheShadowEevee/BDSX-Discord-Chatter-Plugin#readme",
   "author": "TheShadowEevee",
   "repository": "github:TheShadowEevee/BDSX-Discord-Chatter-Plugin",
@@ -15,8 +15,8 @@
     "prepare": "tsc || exit 0"
   },
   "devDependencies": {
+    "@types/node": "^12.20.46",
     "bdsx": "file:../bdsx",
-    "@types/node": "^12.20.5",
     "typescript": "^4.2.3"
   },
   "dependencies": {
