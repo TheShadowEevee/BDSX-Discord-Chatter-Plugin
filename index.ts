@@ -21,28 +21,63 @@ if (!fs.existsSync("./configs/Discord-Chatter/config.json") ) {
         "EnableJoinLeaveMessages": true,
         "EnableServerStartStopMessages": true
     }
-    const jsonString = JSON.parse(JSON.stringify(defaultConfig));
+    const jsonConfig = JSON.parse(JSON.stringify(defaultConfig));
     if (!fs.existsSync("./configs")) {
         fs.mkdir("./configs", (err: any) => {
             if (err) {
-                console.log("[DiscordChatter] Error creating default config.json file" + err);
+                console.log("[DiscordChatter] Error creating default config files" + err);
             }
         });
     };
     if (!fs.existsSync("./configs/Discord-Chatter")) {
         fs.mkdir("./configs/Discord-Chatter", (err: any) => {
             if (err) {
-                console.log("[DiscordChatter] Error creating default config.json file" + err);
+                console.log("[DiscordChatter] Error creating default config files" + err);
             }
         });
     };
-    fs.writeFileSync("./configs/Discord-Chatter/config.json", JSON.stringify(jsonString, null, 2), (err: any) => {
+    fs.writeFileSync("./configs/Discord-Chatter/config.json", JSON.stringify(jsonConfig, null, 2), (err: any) => {
         if (err) {
             console.log("[DiscordChatter] Error creating default config.json file" + err)
         } else {
             console.log("[DiscordChatter] Created a default config.json file.")
             console.log("[DiscordChatter] Please set your configuration values!");
             console.log("[DiscordChatter] Run `dc config help` in the console for more info.");
+        }
+    });
+}
+
+// Create discordactivity json if it doesn't exist
+if (!fs.existsSync("./configs/Discord-Chatter/discordactivity.json") ) {
+    const discordActivity = {
+        "BotStatus": "Online",
+        "BotActivity": {
+            "ActivityName": "Minecraft",
+            "type": "LISTENING"
+        }
+    }
+    const jsonDiscordActivity  = JSON.parse(JSON.stringify(discordActivity));
+    if (!fs.existsSync("./configs")) {
+        fs.mkdir("./configs", (err: any) => {
+            if (err) {
+                console.log("[DiscordChatter] Error creating default config files" + err);
+            }
+        });
+    };
+    if (!fs.existsSync("./configs/Discord-Chatter")) {
+        fs.mkdir("./configs/Discord-Chatter", (err: any) => {
+            if (err) {
+                console.log("[DiscordChatter] Error creating default config files" + err);
+            }
+        });
+    };
+    fs.writeFileSync("./configs/Discord-Chatter/discordactivity.json", JSON.stringify(jsonDiscordActivity, null, 2), (err: any) => {
+        if (err) {
+            console.log("[DiscordChatter] Error creating default discordactivity.json file" + err)
+        } else {
+            console.log("[DiscordChatter] Created a default discordactivity.json file.")
+            console.log("[DiscordChatter] Please set your configuration values!");
+            console.log("[DiscordChatter] Run `dc activity help` in the console for more info.");
         }
     });
 }
@@ -83,7 +118,13 @@ bot.on('ready', () => {
     if ( GetConfig("EnableServerStartStopMessages")  == true ) {
         SendToDiscord("Server Started!", "Server");
     }
-    bot.user.setPresence({ activity: { name: 'Listening for chatter!' }, status: 'online' });
+    bot.user.setPresence({
+        game: { 
+            name: GetConfig("DiscordBotActivityName"),
+            type: GetConfig("DiscordBotActivityType"), // From "PLAYING", "STREAMING", "LISTENING", "WATCHING", "CUSTOM", or "COMPETING". See https://discord.js.org/#/docs/main/stable/typedef/ActivityType
+        },
+        status: GetConfig("DiscordBotStatus") // From "online", "idle", "invisible", or "dnd". See https://discord.js.org/#/docs/main/stable/typedef/PresenceStatusData
+    });
 });
 
 bot.on('message', (msg: { channel: { id: string; }; author: { bot: string | boolean; username: string; }; content: string; }) => {
@@ -271,6 +312,8 @@ function ReloadBot() {
 function GetConfig(key: any) {
     const configPath = path.resolve(__dirname, process.cwd() + "/configs/Discord-Chatter/config.json");
     const config = require(configPath);
+    const discordActivityPath = path.resolve(__dirname, process.cwd() + "/configs/Discord-Chatter/discordactivity.json");
+    const discordActivity = require(discordActivityPath);
 
     switch (key) {
         case "token":
@@ -285,13 +328,32 @@ function GetConfig(key: any) {
             return config.EnableJoinLeaveMessages;
         case "EnableServerStartStopMessages":
             return config.EnableServerStartStopMessages;
-        default:
-            return null;
-    }
+        case "DiscordBotStatus":
+            try {
+                if (discordActivity.BotStatus.toLowerCase() == "online" || "idle" || "invisible" || "dnd") {
+                    return config.BotStatus;
+                } else {
+                    return "online"
+                }
+            } catch {
+                return "online"
+            }
+        case "DiscordBotActivityName":
+            return discordActivity.BotActivity.ActivityName;
+        case "DiscordBotActivityType":
+            try {
+                if (discordActivity.BotActivity.type.toUpperCase() == "PLAYING" || "STREAMING" || "LISTENING" || "WATCHING" || "CUSTOM" || "COMPETING") {
+                    return discordActivity.BotActivity.type;
+                } else {
+                    return "PLAYING"
+                }
+            } catch {
+                return "PLAYING"
+            }
 }
 
 function UpdateConfig(key: string, value: string | boolean | undefined) {
-    var defaultConfig = {
+    const defaultConfig = {
         "token": "null",
         "chanID": "null",
         "BotEnabled": true,
@@ -380,13 +442,79 @@ function UpdateConfig(key: string, value: string | boolean | undefined) {
     }
 }
 
+function UpdateActivity(key: string, value: string | boolean | undefined) {
+    const discordActivity = {
+        "BotStatus": "Online",
+        "BotActivity": {
+            "ActivityName": "Minecraft",
+            "type": "LISTENING"
+        }
+    }
+    if (!fs.existsSync("./configs/Discord-Chatter/discordactivity.json") ) {
+        var jsonString = JSON.parse(JSON.stringify(discordActivity));
+        jsonString[key] = value;
+        fs.writeFileSync("./configs/Discord-Chatter/discordactivity.json", JSON.stringify(jsonString, null, 2), (err: any) => {
+            if (err) {
+                console.log("[DiscordChatter] Error creating default config.json file" + err)
+                return 1;
+            } else {
+                console.log("[DiscordChatter] Created a default config.json file.")
+                console.log("[DiscordChatter] Please set your configuration values!");
+                console.log("[DiscordChatter] Run `dc config help` in the console for more info.");
+                return 1;
+            }
+        });
+        return 0;
+    } else {
+        var discordActivityConfig = require(process.cwd() + "/configs/Discord-Chatter/discordactivity.json");
 
+        switch (key) {
+            case "BotStatus":
+                if (typeof(value) == "string") {
+                    if ( value.toLowerCase() == "online" || "idle" || "invisible" || "dnd") {
+                        discordActivityConfig.BotStatus = true;
+                        break;
+                    } else {
+                        return 1;
+                    }
+                }
+
+            case "BotActivityName":
+                if (typeof(value) == "string") {
+                    discordActivityConfig.BotActivity.ActivityName = value;
+                    break;
+                }
+
+            case "BotActivityType":
+                if (typeof(value) == "string") {
+                    if ( value.toUpperCase() == "PLAYING" || "STREAMING" || "LISTENING" || "WATCHING" || "CUSTOM" || "COMPETING" ) {
+                        discordActivityConfig.BotActivity.type = true;
+                        break;
+                    } else {
+                        return 1;
+                    }
+                }
+
+            default:
+                return 1;
+        }
+
+        fs.writeFileSync("./configs/Discord-Chatter/discordactivity.json", JSON.stringify(discordActivity, null, 2), (err: any) => {
+            if (err) {
+                console.log("[DiscordChatter] Error writing to discordactivity.json file" + err)
+                return 1;
+            }
+        });
+        return 0;
+    }
+}
 
 // Register Commands
 // These are the commands usable by players/console to control the plugin.
 
 // On Server Open
 events.serverOpen.on(()=>{
+    // THIS WILL NO LONGER WORK IN MARCH 2022
     let system = server.registerSystem(0,0);
 
     // Cheaty way to return output to a user
@@ -458,12 +586,12 @@ events.serverOpen.on(()=>{
                             tellRaw(playerName, `Invalid value \"${param.third}\". Use \"dc config help\" for more info.`);
                         }
                         return;
-
                     case "help":
                         tellRaw(playerName, "§3----- DiscordChatter Config Help -----§r")
                         tellRaw(playerName, "/dc config {Key} {Value} - Set a config value (Case-Sensitive)")
                         tellRaw(playerName, "A list of keys can be found at https://github.com/TheShadowEevee/BDSX-Discord-Chatter-Plugin#readme")
                         tellRaw(playerName, "Instructions on how to get some values can be found there as well.")
+                        tellRaw(playerName, "Currently Discord Bot Activity must be set in the config.")
                         tellRaw(playerName, "")
                         tellRaw(playerName, "§4Please note that most commands require OP.§r");
                         tellRaw(playerName, "§4You MUST be using the server console to modify the bot token.§r");
