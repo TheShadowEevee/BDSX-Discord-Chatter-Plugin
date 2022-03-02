@@ -350,6 +350,7 @@ function GetConfig(key: any) {
             } catch {
                 return "PLAYING"
             }
+    }
 }
 
 function UpdateConfig(key: string, value: string | boolean | undefined) {
