@@ -83,10 +83,12 @@ if (!fs.existsSync("./configs/Discord-Chatter/discordactivity.json") ) {
 }
 
 // BDSX Imports
-import { bedrockServer, MinecraftPacketIds, command } from 'bdsx';
+import { MinecraftPacketIds } from 'bdsx';
 import { events } from "bdsx/event";
 import { CxxString } from "bdsx/nativetype";
 import { NetworkIdentifier } from "bdsx/bds/networkidentifier";
+import { TextPacket } from 'bdsx/bds/packets';
+import { serverInstance } from 'bdsx/bds/server';
 
 
 // Discord Bot Requirements
@@ -255,6 +257,17 @@ function SendToDiscordEvent(message: string, user: string) {
     }
 };
 
+// tellRaw code (originally "tellAllRaw()") is credited to 7dev7urandom (https://github.com/7dev7urandom/bdsx-discord-chat/blob/main/index.ts)
+function tellAllRaw(text: string) {
+    const packet = TextPacket.create();
+    packet.type = TextPacket.Types.Raw;
+    packet.message = text;
+    for(const i of serverInstance.minecraft.getLevel().players.toArray()) {
+        i.sendPacket(packet);
+    }
+    packet.dispose();
+}
+
 function SendToGame(message: string, user: string) {
 
     if (serverAlive == false) {
@@ -284,7 +297,7 @@ function SendToGame(message: string, user: string) {
     }
 
     // Actual Messages
-    bedrockServer.executeCommand("say <§2[DISCORD]§r " + user + "> " + message, false);
+    tellAllRaw("<§2[DISCORD]§r " + user + "> " + message);
     if ( GetConfig("PostDiscordMessagesToConsole") == true ) { console.log("[" + timestamp + " CHAT] <[DISCORD] " + user + "> " + message) };
 };
 
@@ -515,114 +528,128 @@ function UpdateActivity(key: string, value: string | boolean | undefined) {
 
 // On Server Open
 events.serverOpen.on(()=>{
-    // THIS WILL NO LONGER WORK IN MARCH 2022
-    let system = server.registerSystem(0,0);
 
-    // Cheaty way to return output to a user
-    function tellRaw(playerName: string, text: string){
+    function tellRaw(playerName: string, text: string) {
         if ( playerName != "Server" ) {
-            system.executeCommand(`/tellraw ${playerName} {"rawtext":[{"text":"${text}"}]}`, () => {});
+            const packet = TextPacket.create();
+            packet.type = TextPacket.Types.Raw;
+            packet.message = text;
+            for(const i of serverInstance.minecraft.getLevel().players.toArray()) {
+                console.log(i)
+            }
+            packet.dispose();
         } else {
             console.log(text);
         }
     }
 
+    /*
     // Register the "dc" Command for DiscordChatter (1 = Operator Perms Minimum Required)
-    command.register('dc', 'DiscordChatter Commands', 1).overload((param, origin, output)=>{
-        let playerName = origin.getName();
-        switch (param.first) {
-            case "help":
-                tellRaw(playerName, "§3----- DiscordChatter Help -----§r")
-                tellRaw(playerName, "/dc help - Shows this help text")
-                tellRaw(playerName, "/dc reload - Reloads the Discord Bot")
-                tellRaw(playerName, "/dc config - Used to change config options")
-                tellRaw(playerName, "")
-                tellRaw(playerName, "§4Please note that most commands require OP.§r");
-                return;
+    events.command.on((cmd, origin, ctx)=>{
+        var params = cmd.replace('/', '').split(" ");
 
-            case "config":
-                switch (param.second) {
-                    case "token":
-                        if ( playerName == "Server" ) { // This should be safe as the odds of a player named "Server" AND being an OP are almost 0.
-                            UpdateConfig("token", param.third);
-                            tellRaw(playerName, "Token Updated; Run `dc reload` to log in.");
-                            return;
-                        }
-                        tellRaw(playerName, "Tokens can only be updated via the server console.");
+        var playerName = origin.name;
 
-                    case "chanID":
-                        var chanID = param.third?.replace("chanID_", "");
-                        UpdateConfig("chanID", chanID);
-                        tellRaw(playerName, `\"chanID\" set to \"§b${chanID}§r\"`);
-                        return;
+        if (ctx.origin.isServerCommandOrigin()) {
+            playerName = "Server"
+        }
 
-                    case "BotEnabled":
-                        if ( UpdateConfig("BotEnabled", param.third) == 0 ) {
-                            tellRaw(playerName, `\"BotEnabled\" set to \"§a${param.third}§r\"`);
-                        } else {
-                            tellRaw(playerName, `Invalid value \"${param.third}\". Use \"dc config help\" for more info.`);
-                        }
-                        return;
-
-                    case "PostDiscordMessagesToConsole":
-                        if ( UpdateConfig("PostDiscordMessagesToConsole", param.third) == 0 ) {
-                            tellRaw(playerName, `\"PostDiscordMessagesToConsole\" set to \"§a${param.third}§r\"`);
-                        } else {
-                            tellRaw(playerName, `Invalid value \"${param.third}\". Use \"dc config help\" for more info.`);
-                        }
-                        return;
-
-                    case "EnableJoinLeaveMessages":
-                        if ( UpdateConfig("EnableJoinLeaveMessages", param.third) == 0 ) {
-                            tellRaw(playerName, `\"EnableJoinLeaveMessages\" set to \"§a${param.third}§r\"`);
-                        } else {
-                            tellRaw(playerName, `Invalid value \"${param.third}\". Use \"dc config help\" for more info.`);
-                        }
-                        return;
-
-                    case "EnableServerStartStopMessages":
-                        if ( UpdateConfig("EnableServerStartStopMessages", param.third) == 0 ) {
-                            tellRaw(playerName, `\"EnableServerStartStopMessages\" set to \"§a${param.third}§r\"`);
-                        } else {
-                            tellRaw(playerName, `Invalid value \"${param.third}\". Use \"dc config help\" for more info.`);
-                        }
-                        return;
+        switch (params[0]){
+            case 'dc':
+                switch (params[1]) {
                     case "help":
-                        tellRaw(playerName, "§3----- DiscordChatter Config Help -----§r")
-                        tellRaw(playerName, "/dc config {Key} {Value} - Set a config value (Case-Sensitive)")
-                        tellRaw(playerName, "A list of keys can be found at https://github.com/TheShadowEevee/BDSX-Discord-Chatter-Plugin#readme")
-                        tellRaw(playerName, "Instructions on how to get some values can be found there as well.")
-                        tellRaw(playerName, "Currently Discord Bot Activity must be set in the config.")
+                        tellRaw(playerName, "§3----- DiscordChatter Help -----§r")
+                        tellRaw(playerName, "/dc help - Shows this help text")
+                        tellRaw(playerName, "/dc reload - Reloads the Discord Bot")
+                        tellRaw(playerName, "/dc config - Used to change config options")
                         tellRaw(playerName, "")
                         tellRaw(playerName, "§4Please note that most commands require OP.§r");
-                        tellRaw(playerName, "§4You MUST be using the server console to modify the bot token.§r");
+                        return;
+
+                    case "config":
+                        switch (params[2]) {
+                            case "token":
+                                if ( ctx.origin.isServerCommandOrigin() ) {
+                                    UpdateConfig("token", params[3]);
+                                    tellRaw(playerName, "Token Updated; Run `dc reload` to log in.");
+                                    return;
+                                }
+                                tellRaw(playerName, "Tokens can only be updated via the server console.");
+
+                            case "chanID":
+                                var chanID = params[3]?.replace("chanID_", "");
+                                UpdateConfig("chanID", chanID);
+                                tellRaw(playerName, `\"chanID\" set to \"§b${chanID}§r\"`);
+                                return;
+
+                            case "BotEnabled":
+                                if ( UpdateConfig("BotEnabled", params[3]) == 0 ) {
+                                    tellRaw(playerName, `\"BotEnabled\" set to \"§a${params[3]}§r\"`);
+                                } else {
+                                    tellRaw(playerName, `Invalid value \"${params[3]}\". Use \"dc config help\" for more info.`);
+                                }
+                                return;
+
+                            case "PostDiscordMessagesToConsole":
+                                if ( UpdateConfig("PostDiscordMessagesToConsole", params[3]) == 0 ) {
+                                    tellRaw(playerName, `\"PostDiscordMessagesToConsole\" set to \"§a${params[3]}§r\"`);
+                                } else {
+                                    tellRaw(playerName, `Invalid value \"${params[3]}\". Use \"dc config help\" for more info.`);
+                                }
+                                return;
+
+                            case "EnableJoinLeaveMessages":
+                                if ( UpdateConfig("EnableJoinLeaveMessages", params[3]) == 0 ) {
+                                    tellRaw(playerName, `\"EnableJoinLeaveMessages\" set to \"§a${params[3]}§r\"`);
+                                } else {
+                                    tellRaw(playerName, `Invalid value \"${params[3]}\". Use \"dc config help\" for more info.`);
+                                }
+                                return;
+
+                            case "EnableServerStartStopMessages":
+                                if ( UpdateConfig("EnableServerStartStopMessages", params[3]) == 0 ) {
+                                    tellRaw(playerName, `\"EnableServerStartStopMessages\" set to \"§a${params[3]}§r\"`);
+                                } else {
+                                    tellRaw(playerName, `Invalid value \"${params[3]}\". Use \"dc config help\" for more info.`);
+                                }
+                                return;
+                            case "help":
+                                tellRaw(playerName, "§3----- DiscordChatter Config Help -----§r")
+                                tellRaw(playerName, "/dc config {Key} {Value} - Set a config value (Case-Sensitive)")
+                                tellRaw(playerName, "A list of keys can be found at https://github.com/TheShadowEevee/BDSX-Discord-Chatter-Plugin#readme")
+                                tellRaw(playerName, "Instructions on how to get some values can be found there as well.")
+                                tellRaw(playerName, "Currently Discord Bot Activity must be set in the config.")
+                                tellRaw(playerName, "")
+                                tellRaw(playerName, "§4Please note that most commands require OP.§r");
+                                tellRaw(playerName, "§4You MUST be using the server console to modify the bot token.§r");
+                                return;
+
+                            default:
+                                tellRaw(playerName, `Invalid argument \"${params[2]}\". Use \"dc config help\" for more info.`);
+                                return;
+                        }
+
+                    case "reload":
+                        tellRaw(playerName, "Reloading DiscordChatter!");
+                        try {
+                            ReloadBot();
+                        } catch (e) {
+                            if (e == "Error: Bot is disabled!") {
+                                tellRaw(playerName, "DiscordChatter is disabled. Stopping the reload.");
+                            } else {
+                                throw e;
+                            }
+                        }
                         return;
 
                     default:
-                        tellRaw(playerName, `Invalid argument \"${param.second}\". Use \"dc config help\" for more info.`);
+                        tellRaw(playerName, `Invalid argument \"${params[1]}\". Use \"dc help\" for a list of commands.`);
                         return;
                 }
-
-            case "reload":
-                tellRaw(playerName, "Reloading DiscordChatter!");
-                try {
-                    ReloadBot();
-                } catch (e) {
-                    if (e == "Error: Bot is disabled!") {
-                        tellRaw(playerName, "DiscordChatter is disabled. Stopping the reload.");
-                    } else {
-                        throw e;
-                    }
-                }
-                return;
-
             default:
-                tellRaw(playerName, `Invalid argument \"${param.first}\". Use \"dc help\" for a list of commands.`);
                 return;
         }
-    }, {
-            first: [CxxString, true], // Help, Config, Reload, Other
-            second: [CxxString, true], // Config Types
-            third: [CxxString, true] // New Config Values
+        return 0;
     });
+    */
 });
