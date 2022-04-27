@@ -22,7 +22,7 @@
     "prepare": "tsc || exit 0"
   },
   "devDependencies": {
-    "@types/node": "^12.20.46",
+    "@types/node": "^12.20.48",
     "bdsx": "file:../bdsx",
     "typescript": "^4.2.3"
   },
