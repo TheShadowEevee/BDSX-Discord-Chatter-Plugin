@@ -77,7 +77,7 @@ if (!fs.existsSync("./configs/Discord-Chatter/discordactivity.json") ) {
         } else {
             console.log("[DiscordChatter] Created a default discordactivity.json file.")
             console.log("[DiscordChatter] Please set your configuration values!");
-            console.log("[DiscordChatter] Run `dc activity help` in the console for more info.");
+            //console.log("[DiscordChatter] Run `dc activity help` in the console for more info.");
         }
     });
 }
@@ -101,7 +101,7 @@ if ( GetConfig("BotEnabled")  == true ) {
     bot.login(GetConfig("token")).catch((e: string) => {
         if (e == "Error: An invalid token was provided." || e == "Error: Incorrect login details were provided.") {
             console.log("\n[DiscordChatter] Error in Discord.js: Invalid Login Token.");
-            console.log("[DiscordChatter] You have provided an Invalid Login Token; Please run `dc config token {token}` in the console.");
+            //console.log("[DiscordChatter] You have provided an Invalid Login Token; Please run `dc config token {token}` in the console.");
             console.log("[DiscordChatter] DiscordChatter will not work without a proper token.\n");
         } else {
             console.log("[DiscordChatter] Uncaught Error! Please report this.");
@@ -136,7 +136,6 @@ bot.on('message', (msg: { channel: { id: string; }; author: { bot: string | bool
 });
 
 bot.on('error', (error) => {
-    console.log(error.message);
     if (error.message.includes("getaddrinfo ENOTFOUND")) {
         console.log("[DiscordChatter] Lost connection to Discord. Automatically attempting to reconnect...")
     } else {
@@ -317,7 +316,7 @@ function ReloadBot() {
         bot.destroy().then(() => bot.login(GetConfig("token")).catch((e: string) => {
             if (e == "Error: An invalid token was provided." || e == "Error: Incorrect login details were provided.") {
                 console.log("\n[DiscordChatter] Error in Discord.js: Invalid Login Token.");
-                console.log("[DiscordChatter] You have provided an Invalid Login Token; Please run `dc config token {token}` in the console.");
+                //console.log("[DiscordChatter] You have provided an Invalid Login Token; Please run `dc config token {token}` in the console.");
                 console.log("[DiscordChatter] DiscordChatter will not work without a proper token.\n");
             } else {
                 console.log("[DiscordChatter] Uncaught Error! Please report this.");
@@ -393,7 +392,7 @@ function UpdateConfig(key: string, value: string | boolean | undefined) {
             } else {
                 console.log("[DiscordChatter] Created a default config.json file.")
                 console.log("[DiscordChatter] Please set your configuration values!");
-                console.log("[DiscordChatter] Run `dc config help` in the console for more info.");
+                //console.log("[DiscordChatter] Run `dc config help` in the console for more info.");
                 return 1;
             }
         });
@@ -482,7 +481,7 @@ function UpdateActivity(key: string, value: string | boolean | undefined) {
             } else {
                 console.log("[DiscordChatter] Created a default config.json file.")
                 console.log("[DiscordChatter] Please set your configuration values!");
-                console.log("[DiscordChatter] Run `dc config help` in the console for more info.");
+                //console.log("[DiscordChatter] Run `dc config help` in the console for more info.");
                 return 1;
             }
         });
