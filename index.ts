@@ -93,7 +93,7 @@ import { serverInstance } from 'bdsx/bds/server';
 
 // Discord Bot Requirements
 const Discord = require('discord.js');
-var bot = new Discord.Client({ disableEveryone: true });
+var bot = new Discord.Client({ disableEveryone: true, autoReconnect: true });
 
 console.log("[DiscordChatter] Starting DiscordChatter!");
 console.log(`[DiscordChatter] DiscordChatter is version ${currVersion}.`);
@@ -135,6 +135,14 @@ bot.on('message', (msg: { channel: { id: string; }; author: { bot: string | bool
     }
 });
 
+bot.on('error', (error) => {
+    console.log(error.message);
+    if (error.message.includes("getaddrinfo ENOTFOUND")) {
+        console.log("[DiscordChatter] Lost connection to Discord. Automatically attempting to reconnect...")
+    } else {
+        throw(error);
+    }
+});
 
 
 // BDSX Events
